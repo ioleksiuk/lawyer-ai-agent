@@ -105,7 +105,7 @@ const CustomTool = () => {
         }
         
         // Ensure documentHash is in bytes32 format
-        const formattedDocumentHash = web3.utils.stringToHex(documentHash);
+        const formattedDocumentHash = '0x' + documentHash; // Add '0x' prefix
         console.log('Formatted Document Hash:', formattedDocumentHash);
     
         try {
@@ -116,6 +116,7 @@ const CustomTool = () => {
             setStatus('Failed to sign document.');
         }
     };
+    
     
 
 
