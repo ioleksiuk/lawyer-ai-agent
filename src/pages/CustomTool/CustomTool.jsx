@@ -255,7 +255,7 @@ const CustomTool = () => {
                                 
                            
                             
-                            <Button 
+                            {/* <Button 
                                 disabled={!recipientAddress} 
                                 onClick={signDocument} 
                                 variant="contained" 
@@ -264,7 +264,7 @@ const CustomTool = () => {
                             }}>Sign Document</Button>
 
 
-                            <p>Status: {status}</p>
+                            <p>Status: {status}</p> */}
                         </div>
                         
                     </div>

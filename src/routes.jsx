@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { LoadingScreen, basic_auth_routes, extra_auth_routes, basic_doc_routes , AuthGuard, NotFound} from 'blustai-react-ui';
+import { LoadingScreen, basic_auth_routes, extra_auth_routes, basic_doc_routes , NotFound} from 'blustai-react-ui';
 
 const Loadable = (Component) => (props) => (
     <Suspense fallback={<LoadingScreen />}>
@@ -10,6 +10,8 @@ const Loadable = (Component) => (props) => (
 const MainLayout = Loadable(lazy(() => import('./layouts/MainLayout')));
 
 const CustomTool = Loadable(lazy(() => import('./pages/CustomTool/CustomTool')));
+
+const SignDocument = Loadable(lazy(() => import('./pages/SignDocument/SignDocument')));
 
 
 const default_not_found_route = {
@@ -24,6 +26,10 @@ const routes = [
     {
         path: '/',
         element: <MainLayout><CustomTool /></MainLayout>
+    },
+    {
+        path: '/sign/:id',
+        element: <SignDocument />
     },
     ...all_subdomain_routes,
     ...extra_auth_routes,
