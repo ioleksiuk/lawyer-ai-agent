@@ -13,6 +13,14 @@ const service_id = import.meta.env.VITE_TOOL_ID //SET YOUR TOOL ID HERE
 const contractAddress = '0x3fA5fC9F93472d76fF7b8f541F13A95cf5667A17';
 const recipientAddressDefault = '0xbAda5386aC75447b7b9411Bf97bA9dD993C1a594';
 
+const generateRandomHash = () => {
+    // Generate a random string of characters
+    const randomString = Math.random().toString(36).substring(2, 15);
+    // Calculate hash from the random string
+    const hash = sha256(randomString).toString();
+    return hash;
+};
+
 
 const CustomTool = () => {
     const { client } = useWss();
@@ -90,7 +98,7 @@ const CustomTool = () => {
             console.log(pdfData);
     
             // Calculate hash from the PDF content
-            const pdfHash = sha256(pdfData).toString();
+            const pdfHash = generateRandomHash();
             console.log('PDF Hash:', pdfHash);
             setDocumentHash(pdfHash);
         } catch (error) {
