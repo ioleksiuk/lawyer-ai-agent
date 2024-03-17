@@ -90,7 +90,7 @@ const CustomTool = () => {
             console.log(pdfData);
     
             // Calculate hash from the PDF content
-            const pdfHash = sha256(pdfData.toString());
+            const pdfHash = sha256(pdfData).toString();
             console.log('PDF Hash:', pdfHash);
             setDocumentHash(pdfHash);
         } catch (error) {
