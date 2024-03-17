@@ -1,17 +1,16 @@
 import { Alert, Button, Card, CircularProgress, Container, TextField } from "@mui/material";
 import { useWss } from "blustai-react-core";
 import { useEffect,  useState } from "react";
-import { Document, Page, pdfjs } from 'react-pdf'
+import Web3 from 'web3';
+import { abi as contractABI } from "./abi";
+import sha256 from 'crypto-js/sha256';
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/build/pdf.worker.min.js',
-    import.meta.url,
-  ).toString();
   
 
 
 
 const service_id = import.meta.env.VITE_TOOL_ID //SET YOUR TOOL ID HERE 
+const contractAddress = '0x3fA5fC9F93472d76fF7b8f541F13A95cf5667A17';
 
 const CustomTool = () => {
     const { client } = useWss();
@@ -21,9 +20,36 @@ const CustomTool = () => {
     const [error, setError] = useState();
     const [submitting, setSubmitting] = useState();
     const [pdfFile, setPdfFile] = useState();
-    const [numPages, setNumPages] = useState(null);
 
 
+    const [web3, setWeb3] = useState(null);
+    const [contract, setContract] = useState(null);
+    const [accounts, setAccounts] = useState([]);
+    const [documentHash, setDocumentHash] = useState('');
+    const [status, setStatus] = useState('');
+
+
+    useEffect(() => {
+        const initWeb3 = async () => {
+            if (window.ethereum) {
+                const web3Instance = new Web3(window.ethereum);
+                try {
+                    await window.ethereum.enable();
+                    setWeb3(web3Instance);
+                    const accounts = await web3Instance.eth.getAccounts();
+                    setAccounts(accounts);
+                    const contractInstance = new web3Instance.eth.Contract(
+                        contractABI,
+                        contractAddress
+                    );
+                    setContract(contractInstance);
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+        };
+        initWeb3();
+    }, []);
 
     useEffect(() => {
         client.init({
@@ -43,28 +69,54 @@ const CustomTool = () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ html })
-                
+                body: JSON.stringify({ html })                
             });
             if (!response.ok) {
                 throw new Error('Failed to generate PDF');
             }
             const blob = await response.blob();
-            
             const pdfObjectURL = URL.createObjectURL(blob); 
             console.log("PDF Object URL:", pdfObjectURL); 
             setPdfFile(pdfObjectURL);
-
+    
+            // Read the PDF data as array buffer
+            const pdfData = await blob.arrayBuffer();
+    
+            // Calculate hash from the PDF content
+            const pdfHash = sha256(pdfData).toString();
+            console.log('PDF Hash:', pdfHash);
+            setDocumentHash(pdfHash);
         } catch (error) {
             console.error('Error generating PDF:', error);
             setError('Error generating PDF');
         } 
     }
+    
 
-    const onDocumentLoadSuccess = ({ numPages }) => {
-        setNumPages(numPages);
+    const signDocument = async () => {
+        if (!contract || !accounts || !accounts[0]) {
+            console.error('Contract or accounts not initialized');
+            return;
+        }
+        
+        if (!documentHash) {
+            console.error('Document hash not available');
+            return;
+        }
+        
+        // Ensure documentHash is in bytes32 format
+        const formattedDocumentHash = web3.utils.stringToHex(documentHash);
+        console.log('Formatted Document Hash:', formattedDocumentHash);
+    
+        try {
+            await contract.methods.signDocument(formattedDocumentHash).send({ from: accounts[0] });
+            setStatus('Document signed successfully.');
+        } catch (error) {
+            console.error(error);
+            setStatus('Failed to sign document.');
+        }
     };
-
+    
 
 
     const onSubmit = async (e) => {
@@ -128,23 +180,12 @@ const CustomTool = () => {
              
         <div style={{width: '100%', margin: '0 auto', paddingBottom: '150px', display: 'flex', justifyContent: 'center' }}>
             {submitting ? <CircularProgress size={"24px"} sx={{margin: '0 auto' }} /> : 
-                // (pdfFile && 
-                //     (
-                //     <Document file={pdfFile} onLoadSuccess={onDocumentLoadSuccess}
-                //         >
-                //         {Array.from(new Array(numPages), (el, index) => (
-                //                     <Page
-                //                         key={`page_${index + 1}`}
-                //                         pageNumber={index + 1}
-                //                         width={600}
-                //                     />
-                //                 ))}
-                //     </Document>
-                    
-                // ))
                 (pdfFile && <iframe src={pdfFile} width="100%" height="800px" title="Generated PDF"></iframe>)
                 }
         </div>
+
+        <Button onClick={signDocument} variant="contained" color="primary">Sign Document</Button>
+        <p>Status: {status}</p>
         
         
     </Container>
