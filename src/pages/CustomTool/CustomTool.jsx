@@ -251,8 +251,12 @@ const CustomTool = () => {
                                 sx={{marginBottom: '24px', width: '158px'}}>Create Document
                             </Button>
 
-                            {userInviteLink && <p>Share this link with recipient: {userInviteLink}</p>}
-                                
+                            {userInviteLink && 
+                            <>
+                            <p>Share this link with recipient:</p>
+                            <p>{userInviteLink}</p>
+                            </>
+}
                            
                             
                             {/* <Button 

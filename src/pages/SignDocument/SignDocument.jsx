@@ -16,7 +16,7 @@ const SignDocument = () => {
     const [web3, setWeb3] = useState(null);
     const [contract, setContract] = useState(null);
     const [accounts, setAccounts] = useState([]);
-    const [status, setStatus] = useState('Make changes to see status');
+    const [status, setStatus] = useState('Unsigned');
 
     const [error, setError] = useState();
     
