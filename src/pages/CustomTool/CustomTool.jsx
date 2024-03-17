@@ -36,6 +36,8 @@ const CustomTool = () => {
     const [documentHash, setDocumentHash] = useState('');
     const [status, setStatus] = useState('Make changes to see status');
 
+    const [isLoadingCreate, setIsLoadingCreate] = useState(false);
+
     const [recipientAddress, setRecipientAddress] = useState(recipientAddressDefault);
     const [userInviteLink, setUserInviteLink] = useState('');
 
@@ -125,6 +127,8 @@ const CustomTool = () => {
         // Ensure documentHash is in bytes32 format
         const formattedDocumentHash = '0x' + documentHash; // Add '0x' prefix
         console.log('Formatted Document Hash:', formattedDocumentHash);
+
+        setIsLoadingCreate(true);
     
         try {
             await contract.methods.createDocument(formattedDocumentHash, recipientAddress).send({ from: accounts[0] });
@@ -134,6 +138,7 @@ const CustomTool = () => {
             console.error(error);
             setStatus('Failed to create document.');
         }
+        setIsLoadingCreate(false);
     };
     
 
@@ -212,13 +217,15 @@ const CustomTool = () => {
                                 sx={{marginBottom: '24px'}} 
                             />
 
-                            <Button 
+                            {!userInviteLink && <Button 
                                 onClick={createDocument} 
                                 disabled={!recipientAddress}
                                 variant="contained" 
                                 color="primary" 
                                 sx={{marginBottom: '24px', width: '158px'}}>Create Document
-                            </Button>
+                            </Button>}
+
+                            {isLoadingCreate && <CircularProgress size={"24px"} sx={{margin: '0 auto' }} />}
 
                             {userInviteLink && 
                                 <>

@@ -1,4 +1,4 @@
-import {  Button, Container } from "@mui/material";
+import {  Button, CircularProgress, Container } from "@mui/material";
 import { useEffect,  useState } from "react";
 import Web3 from 'web3';
 import { abi as contractABI } from "../CustomTool/abi"
@@ -12,6 +12,8 @@ const SignDocument = () => {
     const [contract, setContract] = useState(null);
     const [accounts, setAccounts] = useState([]);
     const [status, setStatus] = useState('Unsigned');
+    const [signSuccess, setSignSuccess] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     
     const documentHash = useSignDocumentId();
 
@@ -50,14 +52,17 @@ const SignDocument = () => {
             return;
         }
         
-        
+        setIsLoading(true);
         try {
             await contract.methods.signDocument(documentHash).send({ from: accounts[0] });
             setStatus('Document signed successfully.');
+            setSignSuccess(true);
         } catch (error) {
             console.error(error);
             setStatus('Failed to sign document.');
         }
+
+        setIsLoading(false);
     };
     
 
@@ -76,19 +81,40 @@ const SignDocument = () => {
         <div style={{width: '100%', margin: '0 auto', paddingBottom: '150px', display: 'flex', justifyContent: 'center' }}>
             {documentHash && (
                 <div style={{display: 'flex', flexDirection: 'column', width: '100%' }}>
-                    <h3>Please sign the document with hash {documentHash}</h3>
-                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px'}}>
-                        
-                        <Button 
-                            disabled={!documentHash} 
-                            onClick={signDocument} 
-                            variant="contained" 
-                            color="primary" 
-                            sx={{marginBottom: '24px', width: '158px'
-                        }}>Sign Document</Button>
+                    {!signSuccess && <>
+                        <h3>Please sign the document with hash {documentHash}</h3>
+                        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px'}}>
+                            
+                            <Button 
+                                disabled={!documentHash} 
+                                onClick={signDocument} 
+                                variant="contained" 
+                                color="primary" 
+                                sx={{marginBottom: '24px', width: '158px'
+                            }}>Sign Document</Button>
 
-                        <p>Status: {status}</p>
-                    </div>
+                            <p>Status: {status}</p>
+
+                            {isLoading && <CircularProgress size={"24px"} sx={{margin: '0 auto' }} />}
+                        </div>
+                    </>}
+
+                    {signSuccess && (
+                        <div style={{
+                            position: 'fixed',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            background: 'green',
+                            color: 'white',
+                            padding: '20px',
+                            borderRadius: '5px',
+                            boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.3)',
+                            zIndex: '9999'
+                        }}>
+                            <span role="img" aria-label="green check mark">✅</span> Document Signed Successfully
+                        </div>
+                    )}
                     
                 </div>
             )}
