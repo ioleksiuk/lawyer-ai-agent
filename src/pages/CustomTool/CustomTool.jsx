@@ -142,7 +142,7 @@ const CustomTool = () => {
                 //     </Document>
                     
                 // ))
-                (pdfFile && <iframe src={pdfFile} width="100%" height="600px" title="Generated PDF"></iframe>)
+                (pdfFile && <iframe src={pdfFile} width="100%" height="800px" title="Generated PDF"></iframe>)
                 }
         </div>
         
