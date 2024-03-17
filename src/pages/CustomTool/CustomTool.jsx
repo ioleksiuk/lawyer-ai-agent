@@ -126,19 +126,24 @@ const CustomTool = () => {
         
         
              
-        <div style={{width: '70%', margin: '0 auto', paddingBottom: '150px', display: 'flex', justifyContent: 'center' }}>
+        <div style={{width: '100%', margin: '0 auto', paddingBottom: '150px', display: 'flex', justifyContent: 'center' }}>
             {submitting ? <CircularProgress size={"24px"} sx={{margin: '0 auto' }} /> : 
-                (pdfFile && 
-                    (<Document file={pdfFile} onLoadSuccess={onDocumentLoadSuccess}
-                        >
-                    {Array.from(new Array(numPages), (el, index) => (
-                                <Page
-                                    key={`page_${index + 1}`}
-                                    pageNumber={index + 1}
-                                    width={600}
-                                />
-                            ))}
-                </Document>))}
+                // (pdfFile && 
+                //     (
+                //     <Document file={pdfFile} onLoadSuccess={onDocumentLoadSuccess}
+                //         >
+                //         {Array.from(new Array(numPages), (el, index) => (
+                //                     <Page
+                //                         key={`page_${index + 1}`}
+                //                         pageNumber={index + 1}
+                //                         width={600}
+                //                     />
+                //                 ))}
+                //     </Document>
+                    
+                // ))
+                (pdfFile && <iframe src={pdfFile} width="100%" height="600px" title="Generated PDF"></iframe>)
+                }
         </div>
         
         
