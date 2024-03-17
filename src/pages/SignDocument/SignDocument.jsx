@@ -4,29 +4,16 @@ import Web3 from 'web3';
 import { abi as contractABI } from "../CustomTool/abi"
 import useSignDocumentId from "./useDocumentId";
 
-  
 const contractAddress = '0x3fA5fC9F93472d76fF7b8f541F13A95cf5667A17';
 
 
-
 const SignDocument = () => {
-    
-    
-
     const [web3, setWeb3] = useState(null);
     const [contract, setContract] = useState(null);
     const [accounts, setAccounts] = useState([]);
     const [status, setStatus] = useState('Unsigned');
-
-    const [error, setError] = useState();
     
-
     const documentHash = useSignDocumentId();
-
-    console.log('ss')
-    console.log(documentHash);
-
-
 
     useEffect(() => {
         const initWeb3 = async () => {
@@ -64,7 +51,6 @@ const SignDocument = () => {
         }
         
         
-    
         try {
             await contract.methods.signDocument(documentHash).send({ from: accounts[0] });
             setStatus('Document signed successfully.');
@@ -74,46 +60,39 @@ const SignDocument = () => {
         }
     };
     
-    
 
 
-    
-
-    return <Container maxWidth="md" sx={{ marginBottom: '150px', background: 'linear-gradient(130deg, #e74c3c 0, #78378c 100%)',
-    minHeight: '100vh',padding: '0',
-    margin: '0 !important',
-    maxWidth: '100% !important' }}>
+    return <Container 
+        maxWidth="md" 
+        sx={{ 
+            marginBottom: '150px', 
+            background: 'linear-gradient(130deg, #e74c3c 0, #78378c 100%)',
+            minHeight: '100vh',
+            padding: '0',
+            margin: '0 !important',
+            maxWidth: '100% !important'
+        }}>
         
-             
         <div style={{width: '100%', margin: '0 auto', paddingBottom: '150px', display: 'flex', justifyContent: 'center' }}>
-            
-                {documentHash && (
-                    <div style={{display: 'flex', flexDirection: 'column', width: '100%' }}>
-
-                        <h3>Please sign the document with hash {documentHash}</h3>
-
-                        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px'}}>
-                           
-                            
-                            <Button 
-                                disabled={!documentHash} 
-                                onClick={signDocument} 
-                                variant="contained" 
-                                color="primary" 
-                                sx={{marginBottom: '24px', width: '158px'
-                            }}>Sign Document</Button>
-
-
-                            <p>Status: {status}</p>
-                        </div>
+            {documentHash && (
+                <div style={{display: 'flex', flexDirection: 'column', width: '100%' }}>
+                    <h3>Please sign the document with hash {documentHash}</h3>
+                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px'}}>
                         
-                    </div>
-                )}
-            
-        </div>
+                        <Button 
+                            disabled={!documentHash} 
+                            onClick={signDocument} 
+                            variant="contained" 
+                            color="primary" 
+                            sx={{marginBottom: '24px', width: '158px'
+                        }}>Sign Document</Button>
 
-        
-        
+                        <p>Status: {status}</p>
+                    </div>
+                    
+                </div>
+            )}
+        </div>
         
     </Container>
 }

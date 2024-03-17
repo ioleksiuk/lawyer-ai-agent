@@ -7,8 +7,6 @@ import sha256 from 'crypto-js/sha256';
 
   
 
-
-
 const service_id = import.meta.env.VITE_TOOL_ID //SET YOUR TOOL ID HERE 
 const contractAddress = '0x3fA5fC9F93472d76fF7b8f541F13A95cf5667A17';
 const recipientAddressDefault = '0xbAda5386aC75447b7b9411Bf97bA9dD993C1a594';
@@ -139,33 +137,6 @@ const CustomTool = () => {
     };
     
 
-    const signDocument = async () => {
-        if (!contract || !accounts || !accounts[0]) {
-            console.error('Contract or accounts not initialized');
-            return;
-        }
-        
-        if (!documentHash) {
-            console.error('Document hash not available');
-            return;
-        }
-        
-        // Ensure documentHash is in bytes32 format
-        const formattedDocumentHash = '0x' + documentHash; // Add '0x' prefix
-        console.log('Formatted Document Hash:', formattedDocumentHash);
-    
-        try {
-            await contract.methods.signDocument(formattedDocumentHash).send({ from: accounts[0] });
-            setStatus('Document signed successfully.');
-        } catch (error) {
-            console.error(error);
-            setStatus('Failed to sign document.');
-        }
-    };
-    
-    
-
-
     const onSubmit = async (e) => {
         
         e.preventDefault();
@@ -223,7 +194,6 @@ const CustomTool = () => {
             }
         </Card>
         
-        
              
         <div style={{width: '100%', margin: '0 auto', paddingBottom: '150px', display: 'flex', justifyContent: 'center' }}>
             {submitting ? <CircularProgress size={"24px"} sx={{margin: '0 auto' }} /> : 
@@ -232,8 +202,7 @@ const CustomTool = () => {
                         <iframe src={pdfFile} width="100%" height="800px" title="Generated PDF"></iframe>
 
                         <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px'}}>
-
-                            
+ 
                             <InputLabel htmlFor="recipient-address">Address of recipient *</InputLabel>
                             
                             <Input 
@@ -252,23 +221,12 @@ const CustomTool = () => {
                             </Button>
 
                             {userInviteLink && 
-                            <>
-                            <p>Share this link with recipient:</p>
-                            <p>{userInviteLink}</p>
-                            </>
-}
+                                <>
+                                    <p>Share this link with recipient:</p>
+                                    <p>{userInviteLink}</p>
+                                </>
+                            }
                            
-                            
-                            {/* <Button 
-                                disabled={!recipientAddress} 
-                                onClick={signDocument} 
-                                variant="contained" 
-                                color="primary" 
-                                sx={{marginBottom: '24px', width: '158px'
-                            }}>Sign Document</Button>
-
-
-                            <p>Status: {status}</p> */}
                         </div>
                         
                     </div>
@@ -276,8 +234,6 @@ const CustomTool = () => {
             }
         </div>
 
-        
-        
         
     </Container>
 }
