@@ -1,6 +1,15 @@
-import { Alert, Button, Card, CircularProgress, Container, Grid, Paper, TextField } from "@mui/material";
+import { Alert, Button, Card, CircularProgress, Container, TextField } from "@mui/material";
 import { useWss } from "blustai-react-core";
 import { useEffect,  useState } from "react";
+import { Document, Page, pdfjs } from 'react-pdf'
+
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/build/pdf.worker.min.js',
+    import.meta.url,
+  ).toString();
+  
+
+
 
 const service_id = import.meta.env.VITE_TOOL_ID //SET YOUR TOOL ID HERE 
 
@@ -11,6 +20,10 @@ const CustomTool = () => {
     const [images, setImages] = useState();
     const [error, setError] = useState();
     const [submitting, setSubmitting] = useState();
+    const [pdfFile, setPdfFile] = useState();
+    const [numPages, setNumPages] = useState(null);
+
+
 
     useEffect(() => {
         client.init({
@@ -21,13 +34,46 @@ const CustomTool = () => {
             },
             onError: (error) => setError(error?.error || error?.message || "Blust AI Client init error")
         });
-    }, [])
+    }, []);
+
+    const createPdfFromHtml = async (html) => {
+        try {
+            const response = await fetch('http://localhost:3000/generate-pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ html })
+                
+            });
+            if (!response.ok) {
+                throw new Error('Failed to generate PDF');
+            }
+            const blob = await response.blob();
+            
+            const pdfObjectURL = URL.createObjectURL(blob); 
+            console.log("PDF Object URL:", pdfObjectURL); 
+            setPdfFile(pdfObjectURL);
+
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            setError('Error generating PDF');
+        } 
+    }
+
+    const onDocumentLoadSuccess = ({ numPages }) => {
+        setNumPages(numPages);
+    };
+
+
 
     const onSubmit = async (e) => {
+        
         e.preventDefault();
         console.log("here",e.target.elements.prompt.value)
         if (!e.target.elements.prompt.value) { setError("Please, input prompt"); return };
         setSubmitting(true);
+        
         try {
             setError(null);
             setResponse(null);
@@ -36,22 +82,29 @@ const CustomTool = () => {
                 chat: chatId, //if null - new thread will be created
                 message: e.target.elements.prompt.value,
                 onStream: (text) => setResponse(text),
+                
                 //voice: "VOICE_FILE_URL", //you can use audio files as a prompt (if voice recognition enabled)
                 //attachments: [{type:"image",url:"IMAGE_URL"}] //you can attach images (if image recognition enabled)
             });
+            
             setResponse(_response?.body);
+            
             if (_response?.images?.length) setImages(_response.images)
             //_response?.files will contain files (if files are generated and if your tool support file parsing)
             //_response?.voice will contain voice response (if audio output is enabled)
             if (!chatId) setChatId(response?.chat); //saving chatId if not set
+            createPdfFromHtml(_response?.body);
+
         } catch (error) {
             setError(error?.error || error?.message || "Sending message error")
-        }
+        } 
         setSubmitting(false);
+        
     }
 
-    return <Container maxWidth="md" >
+    return <Container maxWidth="md" sx={{ marginBottom: '150px' }}>
         <Card sx={{ p: 4, m: 4 }}>
+            <h3>Describe what type of document you want to create: </h3>
             {error &&
                 <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
             }
@@ -59,20 +112,36 @@ const CustomTool = () => {
                 <Alert severity="error" sx={{ mb: 2 }}>Please, set service_id</Alert>
                 :
                 <form action="#" onSubmit={onSubmit}>
-                    <TextField name="prompt"  label="Prompt" rows={5} multiline fullWidth />
+                    <TextField name="prompt"  label="Description" rows={5} multiline fullWidth />
                     <Button 
                         type="submit" 
                         sx={{ mt: 2 }} 
                         disabled={submitting}
-                    >Send {submitting && <CircularProgress size={"1em"}/>}
+                    >Create 
                     </Button>
-                    {response &&
-                        <Paper sx={{p:2,mt:2,mb:2}}>{response}</Paper>
-                    }
                     {images?.map((img, key) => <img key={key} src={img.url} width="150" />)}
                 </form>
             }
         </Card>
+        
+        
+             
+        <div style={{width: '70%', margin: '0 auto', paddingBottom: '150px', display: 'flex', justifyContent: 'center' }}>
+            {submitting ? <CircularProgress size={"24px"} sx={{margin: '0 auto' }} /> : 
+                (pdfFile && 
+                    (<Document file={pdfFile} onLoadSuccess={onDocumentLoadSuccess}
+                        >
+                    {Array.from(new Array(numPages), (el, index) => (
+                                <Page
+                                    key={`page_${index + 1}`}
+                                    pageNumber={index + 1}
+                                    width={600}
+                                />
+                            ))}
+                </Document>))}
+        </div>
+        
+        
     </Container>
 }
 

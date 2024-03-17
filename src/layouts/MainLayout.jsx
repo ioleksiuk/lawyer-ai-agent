@@ -8,6 +8,8 @@ const Main = styled('main', { shouldForwardProp: (prop) => !['hide'].includes(pr
     ({ theme, hide }) => ({
         flexGrow: 1,
         position: 'relative',
+        background: 'linear-gradient(130deg, #e74c3c 0, #78378c 100%)',
+        minHeight: '100vh',
         ...!hide && {
             paddingTop: '64px', //AppBAr height
             '& .chat-card-fullscreen': {
