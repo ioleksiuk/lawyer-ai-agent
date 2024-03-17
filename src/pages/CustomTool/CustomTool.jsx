@@ -1,4 +1,4 @@
-import { Alert, Button, Card, CircularProgress, Container, TextField } from "@mui/material";
+import { Alert, Button, Card, CircularProgress, Container, Input, InputLabel, TextField } from "@mui/material";
 import { useWss } from "blustai-react-core";
 import { useEffect,  useState } from "react";
 import Web3 from 'web3';
@@ -11,6 +11,8 @@ import sha256 from 'crypto-js/sha256';
 
 const service_id = import.meta.env.VITE_TOOL_ID //SET YOUR TOOL ID HERE 
 const contractAddress = '0x3fA5fC9F93472d76fF7b8f541F13A95cf5667A17';
+const recipientAddressDefault = '0xbAda5386aC75447b7b9411Bf97bA9dD993C1a594';
+
 
 const CustomTool = () => {
     const { client } = useWss();
@@ -26,7 +28,10 @@ const CustomTool = () => {
     const [contract, setContract] = useState(null);
     const [accounts, setAccounts] = useState([]);
     const [documentHash, setDocumentHash] = useState('');
-    const [status, setStatus] = useState('');
+    const [status, setStatus] = useState('Make changes to see status');
+
+    const [recipientAddress, setRecipientAddress] = useState(recipientAddressDefault);
+    const [userInviteLink, setUserInviteLink] = useState('');
 
 
     useEffect(() => {
@@ -81,9 +86,11 @@ const CustomTool = () => {
     
             // Read the PDF data as array buffer
             const pdfData = await blob.arrayBuffer();
+
+            console.log(pdfData);
     
             // Calculate hash from the PDF content
-            const pdfHash = sha256(pdfData).toString();
+            const pdfHash = sha256(pdfData.toString());
             console.log('PDF Hash:', pdfHash);
             setDocumentHash(pdfHash);
         } catch (error) {
@@ -91,6 +98,37 @@ const CustomTool = () => {
             setError('Error generating PDF');
         } 
     }
+
+    const createDocument = async () => {
+        if (!contract || !accounts || !accounts[0]) {
+            console.error('Contract or accounts not initialized');
+            return;
+        }
+        
+        if (!documentHash) {
+            console.error('Document hash not available');
+            return;
+        }
+
+        if (!recipientAddress) {
+            console.error('Recipient address is required to create a document');
+            return;
+        }
+
+        
+        // Ensure documentHash is in bytes32 format
+        const formattedDocumentHash = '0x' + documentHash; // Add '0x' prefix
+        console.log('Formatted Document Hash:', formattedDocumentHash);
+    
+        try {
+            await contract.methods.createDocument(formattedDocumentHash, recipientAddress).send({ from: accounts[0] });
+            setStatus('Document created successfully.');
+            setUserInviteLink(`http://localhost:5173/sign/${formattedDocumentHash}`);
+        } catch (error) {
+            console.error(error);
+            setStatus('Failed to create document.');
+        }
+    };
     
 
     const signDocument = async () => {
@@ -124,7 +162,7 @@ const CustomTool = () => {
         
         e.preventDefault();
         console.log("here",e.target.elements.prompt.value)
-        if (!e.target.elements.prompt.value) { setError("Please, input prompt"); return };
+        if (!e.target.elements.prompt.value) { setError("Please, input prompt"); return }
         setSubmitting(true);
         
         try {
@@ -181,12 +219,52 @@ const CustomTool = () => {
              
         <div style={{width: '100%', margin: '0 auto', paddingBottom: '150px', display: 'flex', justifyContent: 'center' }}>
             {submitting ? <CircularProgress size={"24px"} sx={{margin: '0 auto' }} /> : 
-                (pdfFile && <iframe src={pdfFile} width="100%" height="800px" title="Generated PDF"></iframe>)
-                }
+                (pdfFile && (
+                    <div style={{display: 'flex', flexDirection: 'column', width: '100%' }}>
+                        <iframe src={pdfFile} width="100%" height="800px" title="Generated PDF"></iframe>
+
+                        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px'}}>
+
+                            
+                            <InputLabel htmlFor="recipient-address">Address of recipient *</InputLabel>
+                            
+                            <Input 
+                                id="recipient-address" 
+                                value={recipientAddress} 
+                                onChange={(event) => setRecipientAddress(event.target.value)} 
+                                sx={{marginBottom: '24px'}} 
+                            />
+
+                            <Button 
+                                onClick={createDocument} 
+                                disabled={!recipientAddress}
+                                variant="contained" 
+                                color="primary" 
+                                sx={{marginBottom: '24px', width: '158px'}}>Create Document
+                            </Button>
+
+                            {userInviteLink && <p>Share this link with recipient: {userInviteLink}</p>}
+                                
+                           
+                            
+                            <Button 
+                                disabled={!recipientAddress} 
+                                onClick={signDocument} 
+                                variant="contained" 
+                                color="primary" 
+                                sx={{marginBottom: '24px', width: '158px'
+                            }}>Sign Document</Button>
+
+
+                            <p>Status: {status}</p>
+                        </div>
+                        
+                    </div>
+                ))
+            }
         </div>
 
-        <Button onClick={signDocument} variant="contained" color="primary">Sign Document</Button>
-        <p>Status: {status}</p>
+        
         
         
     </Container>
