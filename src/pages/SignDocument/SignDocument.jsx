@@ -63,12 +63,10 @@ const SignDocument = () => {
             return;
         }
         
-        // Ensure documentHash is in bytes32 format
-        const formattedDocumentHash = '0x' + documentHash; // Add '0x' prefix
-        console.log('Formatted Document Hash:', formattedDocumentHash);
+        
     
         try {
-            await contract.methods.signDocument(formattedDocumentHash).send({ from: accounts[0] });
+            await contract.methods.signDocument(documentHash).send({ from: accounts[0] });
             setStatus('Document signed successfully.');
         } catch (error) {
             console.error(error);
